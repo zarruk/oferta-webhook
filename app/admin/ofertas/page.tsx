@@ -45,7 +45,7 @@ async function obtenerOfertas(): Promise<DatosRemesa[]> {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
     const ofertas = rows.map(row => {
-      console.log('Procesando fila:', row._rawData);
+      console.log('Procesando fila:', row.toObject());
       const numeroPedido = row.get('Número de Pedido');
       return {
         numeroPedido,
