@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: oferta-webhook
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: GOOGLE_SERVICE_ACCOUNT_EMAIL
+        sync: false
+      - key: GOOGLE_PRIVATE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_BASE_URL
+        sync: false 

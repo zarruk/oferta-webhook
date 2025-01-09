@@ -1,0 +1,9 @@
+{
+  "ciudadOrigen": "BUENAVENTURA",
+  "ciudadDestino": "Sevilla",
+  "tipoVehiculo": "Furgoneta",
+  "empresa": "Envíos Rápidos S.L.",
+  "tipoCarga": "Paquetería",
+  "valorRemesa": 2500,
+  "numeroPedido": 29103
+}
