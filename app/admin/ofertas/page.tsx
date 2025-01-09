@@ -40,7 +40,7 @@ async function obtenerOfertas(): Promise<DatosRemesa[]> {
     const rows = await sheet.getRows();
     
     console.log('Filas obtenidas:', rows.length);
-    console.log('Primera fila:', rows[0]?._rawData);
+    console.log('Primera fila:', rows[0]?.toObject());
     
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
