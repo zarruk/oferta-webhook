@@ -9,7 +9,12 @@ export async function POST(request: Request) {
   
   try {
     const datos = await request.json();
-    console.log('📦 Datos recibidos:', datos);
+    console.log('📦 Datos recibidos RAW:', datos);
+    console.log('🚗 Datos del vehículo:', {
+      placa: datos.placa_vehiculo,
+      capacidad: datos.capacidad_vehiculo,
+      remolque: datos.placa_remolque
+    });
 
     // Generar UUID para la oferta
     const uuid = uuidv4();
@@ -53,7 +58,16 @@ export async function POST(request: Request) {
       'Cédula': datos.cedula,
       'Teléfono': datos.telefono,
       'Fecha': datos.fecha,
+      'Placa vehículo': datos.placa_vehiculo,
+      'Capacidad de vehículo': datos.capacidad_vehiculo,
+      'Placa remolque': datos.placa_remolque,
       'Estado': 'Recibido'
+    });
+    console.log('✅ Fila añadida:', {
+      'UUID': uuid,
+      'Placa Vehículo': datos.placa_vehiculo,
+      'Capacidad Vehículo': datos.capacidad_vehiculo,
+      'Placa Remolque': datos.placa_remolque,
     });
     console.log('✅ Datos guardados en Google Sheets');
 

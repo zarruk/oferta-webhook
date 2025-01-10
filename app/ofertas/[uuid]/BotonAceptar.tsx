@@ -1,5 +1,7 @@
 'use client';
 
+import React, { useState } from 'react';
+
 interface Props {
   oferta: {
     numeroPedido: string;
@@ -11,16 +13,64 @@ interface Props {
     valorRemesa: number;
     nombre: string;
     apellido: string;
-    fecha: string;
     cedula: string;
     telefono: string;
-  }
+    fecha: string;
+    placa_vehiculo?: string;
+    capacidad_vehiculo?: string;
+    placa_remolque?: string;
+  };
 }
 
 export default function BotonAceptar({ oferta }: Props) {
+  const [loading, setLoading] = useState(false);
+
   const handleClick = async () => {
+    setLoading(true);
     try {
-      console.log('Enviando datos:', oferta); // Para debug
+      console.log('Datos de vehículo a enviar:', {
+        placa: oferta.placa_vehiculo,
+        capacidad: oferta.capacidad_vehiculo,
+        remolque: oferta.placa_remolque
+      });
+
+      console.log('Datos completos de la oferta:', {
+        numeroPedido: oferta.numeroPedido,
+        ciudadOrigen: oferta.ciudadOrigen,
+        ciudadDestino: oferta.ciudadDestino,
+        tipoVehiculo: oferta.tipoVehiculo,
+        empresa: oferta.empresa,
+        tipoCarga: oferta.tipoCarga,
+        valorRemesa: oferta.valorRemesa,
+        nombre: oferta.nombre,
+        apellido: oferta.apellido,
+        cedula: oferta.cedula,
+        telefono: oferta.telefono,
+        fecha: oferta.fecha,
+        placa_vehiculo: oferta.placa_vehiculo,
+        capacidad_vehiculo: oferta.capacidad_vehiculo,
+        placa_remolque: oferta.placa_remolque
+      });
+
+      const payload = {
+        numeroPedido: oferta.numeroPedido,
+        ciudadOrigen: oferta.ciudadOrigen,
+        ciudadDestino: oferta.ciudadDestino,
+        tipoVehiculo: oferta.tipoVehiculo,
+        empresa: oferta.empresa,
+        tipoCarga: oferta.tipoCarga,
+        valorRemesa: oferta.valorRemesa,
+        nombre: oferta.nombre,
+        apellido: oferta.apellido,
+        cedula: oferta.cedula,
+        telefono: oferta.telefono,
+        fecha: oferta.fecha,
+        placa_vehiculo: oferta.placa_vehiculo || '',
+        capacidad_vehiculo: oferta.capacidad_vehiculo || '',
+        placa_remolque: oferta.placa_remolque || ''
+      };
+
+      console.log('Payload a enviar:', payload);
 
       const response = await fetch('https://workflows.ops.sandbox.cuentamono.com/webhook/f3ff9ef5-218d-4c67-a1b1-04cc5c1a4674', {
         method: 'POST',
@@ -28,20 +78,7 @@ export default function BotonAceptar({ oferta }: Props) {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify({
-          numeroPedido: oferta.numeroPedido,
-          ciudadOrigen: oferta.ciudadOrigen,
-          ciudadDestino: oferta.ciudadDestino,
-          tipoVehiculo: oferta.tipoVehiculo,
-          empresa: oferta.empresa,
-          tipoCarga: oferta.tipoCarga,
-          valorRemesa: oferta.valorRemesa,
-          nombre: oferta.nombre,
-          apellido: oferta.apellido,
-          cedula: oferta.cedula,
-          telefono: oferta.telefono,
-          fecha: oferta.fecha
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -50,10 +87,26 @@ export default function BotonAceptar({ oferta }: Props) {
         throw new Error('Error al enviar la oferta: ' + text);
       }
 
+      const updateResponse = await fetch('/api/ofertas/actualizar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          numeroPedido: oferta.numeroPedido
+        })
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error('Error al actualizar el estado');
+      }
+
       alert('Oferta aceptada exitosamente');
     } catch (error) {
       console.error('Error:', error);
       alert('Error al aceptar la oferta: ' + (error as Error).message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,6 +114,7 @@ export default function BotonAceptar({ oferta }: Props) {
     <button 
       className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition-colors"
       onClick={handleClick}
+      disabled={loading}
     >
       Aceptar Oferta
     </button>

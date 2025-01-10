@@ -17,6 +17,9 @@ interface OfertaDetalle {
   fecha: string;
   cedula: string;
   telefono: string;
+  placa_vehiculo?: string;
+  capacidad_vehiculo?: string;
+  placa_remolque?: string;
 }
 
 async function obtenerOferta(uuid: string): Promise<OfertaDetalle | null> {
@@ -43,13 +46,33 @@ async function obtenerOferta(uuid: string): Promise<OfertaDetalle | null> {
 
     const oferta = rows.find(row => {
       const rowUuid = row.get('UUID');
-      console.log('Comparando UUID:', rowUuid, 'con', uuid);
+      console.log('Fila completa:', {
+        uuid: rowUuid,
+        placa: row.get('Placa vehículo'),
+        capacidad: row.get('Capacidad de vehículo'),
+        remolque: row.get('Placa remolque')
+      });
       return rowUuid === uuid;
     });
 
     console.log('Oferta encontrada:', oferta ? 'Sí' : 'No');
 
     if (!oferta) return null;
+
+    console.log('🔍 Datos de la fila:', oferta ? {
+      placa_vehiculo: oferta.get('Placa Vehículo'),
+      capacidad_vehiculo: oferta.get('Capacidad Vehículo'),
+      placa_remolque: oferta.get('Placa Remolque')
+    } : null);
+
+    console.log('Fila encontrada:', oferta ? {
+      'Número de Pedido': oferta.get('Número de Pedido'),
+      'Capacidad de vehículo (raw)': oferta.get('Capacidad de vehículo'),
+      'Capacidad de vehículo (columna Q)': oferta.get('Q'),
+      'Todos los campos': Object.fromEntries(
+        Object.entries(oferta.toObject())
+      )
+    } : null);
 
     return {
       numeroPedido: oferta.get('Número de Pedido'),
@@ -63,7 +86,10 @@ async function obtenerOferta(uuid: string): Promise<OfertaDetalle | null> {
       apellido: oferta.get('Apellido'),
       fecha: oferta.get('Fecha'),
       cedula: oferta.get('Cédula'),
-      telefono: oferta.get('Teléfono')
+      telefono: oferta.get('Teléfono'),
+      placa_vehiculo: oferta.get('Placa vehículo'),
+      capacidad_vehiculo: oferta.get('Capacidad de vehículo'),
+      placa_remolque: oferta.get('Placa remolque')
     };
   } catch (error) {
     console.error('Error al obtener oferta:', error);
@@ -86,59 +112,74 @@ export default async function OfertaPage({ params }: { params: { uuid: string } 
   }).format(oferta.valorRemesa);
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md">
-      <div className="p-6 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-gray-800">
-          Oferta: {oferta.numeroPedido}
-        </h1>
-      </div>
-
-      <div className="p-6">
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Ciudad Origen</h3>
-            <p className="mt-1 text-lg text-gray-900">{oferta.ciudadOrigen}</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Ciudad Destino</h3>
-            <p className="mt-1 text-lg text-gray-900">{oferta.ciudadDestino}</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Tipo de Vehículo</h3>
-            <p className="mt-1 text-lg text-gray-900">{oferta.tipoVehiculo}</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Empresa</h3>
-            <p className="mt-1 text-lg text-gray-900">{oferta.empresa}</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Tipo de Carga</h3>
-            <p className="mt-1 text-lg text-gray-900">{oferta.tipoCarga}</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Valor de Remesa</h3>
-            <p className="mt-1 text-lg text-gray-900">{valorFormateado}</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Responsable</h3>
-            <p className="mt-1 text-lg text-gray-900">{oferta.nombre} {oferta.apellido}</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Fecha</h3>
-            <p className="mt-1 text-lg text-gray-900">{oferta.fecha}</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Cédula</h3>
-            <p className="mt-1 text-lg text-gray-900">{oferta.cedula}</p>
-          </div>
-          <div>
-            <h3 className="text-sm font-medium text-gray-500">Teléfono</h3>
-            <p className="mt-1 text-lg text-gray-900">{oferta.telefono}</p>
-          </div>
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">Detalles de la Oferta</h1>
+      <div className="bg-white shadow rounded-lg p-6">
+        <div className="p-6 border-b border-gray-200">
+          <h1 className="text-2xl font-bold text-gray-800">
+            Oferta: {oferta.numeroPedido}
+          </h1>
         </div>
 
-        <div className="mt-8">
-          <BotonAceptar oferta={oferta} />
+        <div className="p-6">
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Ciudad Origen</h3>
+              <p className="mt-1 text-lg text-gray-900">{oferta.ciudadOrigen}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Ciudad Destino</h3>
+              <p className="mt-1 text-lg text-gray-900">{oferta.ciudadDestino}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Tipo de Vehículo</h3>
+              <p className="mt-1 text-lg text-gray-900">{oferta.tipoVehiculo}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Empresa</h3>
+              <p className="mt-1 text-lg text-gray-900">{oferta.empresa}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Tipo de Carga</h3>
+              <p className="mt-1 text-lg text-gray-900">{oferta.tipoCarga}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Valor de Remesa</h3>
+              <p className="mt-1 text-lg text-gray-900">{valorFormateado}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Responsable</h3>
+              <p className="mt-1 text-lg text-gray-900">{oferta.nombre} {oferta.apellido}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Fecha</h3>
+              <p className="mt-1 text-lg text-gray-900">{oferta.fecha}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Cédula</h3>
+              <p className="mt-1 text-lg text-gray-900">{oferta.cedula}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Teléfono</h3>
+              <p className="mt-1 text-lg text-gray-900">{oferta.telefono}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Placa del Vehículo</h3>
+              <p className="mt-1 text-lg text-gray-900">{oferta.placa_vehiculo || 'No especificado'}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Capacidad del Vehículo</h3>
+              <p className="mt-1 text-lg text-gray-900">{oferta.capacidad_vehiculo || 'No especificado'}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Placa del Remolque</h3>
+              <p className="mt-1 text-lg text-gray-900">{oferta.placa_remolque || 'No especificado'}</p>
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <BotonAceptar oferta={oferta} />
+          </div>
         </div>
       </div>
     </div>
