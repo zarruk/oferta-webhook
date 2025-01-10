@@ -6,6 +6,7 @@ import { SPREADSHEET_ID, SHEET_ID, CREDENTIALS } from '@/app/lib/googleSheets';
 import { redirect } from 'next/navigation';
 
 interface OfertaDetalle {
+  uuid: string;
   numeroPedido: string;
   ciudadOrigen: string;
   ciudadDestino: string;
@@ -65,6 +66,7 @@ async function obtenerOferta(uuid: string): Promise<OfertaDetalle | null> {
     const estado = oferta.get('Estado');
     if (estado !== 'Recibido') {
       return {
+        uuid: uuid,
         estado: estado,
         numeroPedido: oferta.get('Número de Pedido'),
         ciudadOrigen: oferta.get('Ciudad Origen'),
@@ -100,6 +102,7 @@ async function obtenerOferta(uuid: string): Promise<OfertaDetalle | null> {
     } : null);
 
     return {
+      uuid: uuid,
       estado: estado,
       numeroPedido: oferta.get('Número de Pedido'),
       ciudadOrigen: oferta.get('Ciudad Origen'),
