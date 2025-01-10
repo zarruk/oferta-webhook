@@ -5,7 +5,7 @@ import { SPREADSHEET_ID, SHEET_ID, CREDENTIALS } from '@/app/lib/googleSheets';
 
 export async function POST(request: Request) {
   try {
-    const { numeroPedido } = await request.json();
+    const { numeroPedido, uuid } = await request.json();
 
     const jwt = new JWT({
       email: CREDENTIALS.client_email,
@@ -18,11 +18,11 @@ export async function POST(request: Request) {
     const sheet = doc.sheetsById[SHEET_ID];
     const rows = await sheet.getRows();
 
-    // Encontrar la oferta actual
-    const ofertaActual = rows.find(row => row.get('Número de Pedido') === numeroPedido);
+    // Encontrar la oferta actual por UUID
+    const ofertaActual = rows.find(row => row.get('UUID') === uuid);
     
     if (!ofertaActual) {
-      return NextResponse.json({ success: false, error: 'Pedido no encontrado' });
+      return NextResponse.json({ success: false, error: 'Oferta no encontrada' });
     }
 
     const cedulaTransportista = ofertaActual.get('Cédula');
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
         row.get('Cédula') === cedulaTransportista && 
         row.get('Estado') === 'Recibido'
       ) {
-        if (row.get('Número de Pedido') === numeroPedido) {
+        if (row.get('UUID') === uuid) {
           row.set('Estado', 'Aceptada');
         } else {
           row.set('Estado', 'Cancelada');

@@ -6,6 +6,7 @@ import { Fragment } from 'react';
 
 interface Props {
   oferta: {
+    uuid: string;
     numeroPedido: string;
     ciudadOrigen: string;
     ciudadDestino: string;
@@ -96,7 +97,8 @@ export default function BotonAceptar({ oferta }: Props) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          numeroPedido: oferta.numeroPedido
+          numeroPedido: oferta.numeroPedido,
+          uuid: oferta.uuid
         })
       });
 
