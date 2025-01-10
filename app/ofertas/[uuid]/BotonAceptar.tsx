@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment } from 'react';
 
 interface Props {
   oferta: {
@@ -24,6 +26,7 @@ interface Props {
 
 export default function BotonAceptar({ oferta }: Props) {
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleClick = async () => {
     setLoading(true);
@@ -101,7 +104,7 @@ export default function BotonAceptar({ oferta }: Props) {
         throw new Error('Error al actualizar el estado');
       }
 
-      alert('Oferta aceptada exitosamente');
+      setShowSuccess(true);
     } catch (error) {
       console.error('Error:', error);
       alert('Error al aceptar la oferta: ' + (error as Error).message);
@@ -111,12 +114,62 @@ export default function BotonAceptar({ oferta }: Props) {
   };
 
   return (
-    <button 
-      className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition-colors"
-      onClick={handleClick}
-      disabled={loading}
-    >
-      Aceptar Oferta
-    </button>
+    <>
+      <button 
+        className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition-colors"
+        onClick={handleClick}
+        disabled={loading}
+      >
+        {loading ? 'Procesando...' : 'Aceptar Oferta'}
+      </button>
+
+      <Transition show={showSuccess} as={Fragment}>
+        <Dialog 
+          as="div" 
+          className="relative z-10"
+          onClose={() => {
+            setShowSuccess(false);
+            window.location.reload();
+          }}
+        >
+          <div className="fixed inset-0 bg-black bg-opacity-25" />
+          
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                  <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                </div>
+                <Dialog.Title 
+                  as="h3" 
+                  className="text-lg font-medium leading-6 text-gray-900 text-center mt-4"
+                >
+                  ¡Oferta aceptada exitosamente!
+                </Dialog.Title>
+                <div className="mt-2">
+                  <p className="text-sm text-gray-500 text-center">
+                    La oferta ha sido aceptada y las demás ofertas asociadas a tu cédula han sido canceladas.
+                  </p>
+                </div>
+                <div className="mt-4 text-center">
+                  <button
+                    type="button"
+                    className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                    onClick={() => {
+                      setShowSuccess(false);
+                      window.location.reload();
+                    }}
+                  >
+                    Entendido
+                  </button>
+                </div>
+              </Dialog.Panel>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+    </>
   );
 } 

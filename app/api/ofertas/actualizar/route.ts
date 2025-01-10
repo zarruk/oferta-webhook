@@ -18,17 +18,31 @@ export async function POST(request: Request) {
     const sheet = doc.sheetsById[SHEET_ID];
     const rows = await sheet.getRows();
 
-    // Encontrar la fila con el número de pedido
-    const row = rows.find(row => row.get('Número de Pedido') === numeroPedido);
+    // Encontrar la oferta actual
+    const ofertaActual = rows.find(row => row.get('Número de Pedido') === numeroPedido);
     
-    if (row) {
-      // Actualizar el estado
-      row.set('Estado', 'Aceptada');
-      await row.save();
-      return NextResponse.json({ success: true });
+    if (!ofertaActual) {
+      return NextResponse.json({ success: false, error: 'Pedido no encontrado' });
     }
 
-    return NextResponse.json({ success: false, error: 'Pedido no encontrado' });
+    const cedulaTransportista = ofertaActual.get('Cédula');
+
+    // Actualizar todas las ofertas del mismo transportista
+    for (const row of rows) {
+      if (
+        row.get('Cédula') === cedulaTransportista && 
+        row.get('Estado') === 'Recibido'
+      ) {
+        if (row.get('Número de Pedido') === numeroPedido) {
+          row.set('Estado', 'Aceptada');
+        } else {
+          row.set('Estado', 'Cancelada');
+        }
+        await row.save();
+      }
+    }
+
+    return NextResponse.json({ success: true });
 
   } catch (error) {
     console.error('Error al actualizar estado:', error);
