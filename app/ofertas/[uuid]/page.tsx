@@ -25,13 +25,6 @@ interface OfertaDetalle {
   estado: string;
 }
 
-interface PageProps {
-  params: {
-    uuid: string;
-  };
-  searchParams: { [key: string]: string | string[] | undefined };
-}
-
 async function obtenerOferta(uuid: string): Promise<OfertaDetalle | null> {
   try {
     console.log('Iniciando búsqueda de oferta con UUID:', uuid);
@@ -133,7 +126,12 @@ async function obtenerOferta(uuid: string): Promise<OfertaDetalle | null> {
   }
 }
 
-export default async function OfertaPage({ params }: PageProps) {
+export default async function OfertaPage({
+  params,
+}: {
+  params: { uuid: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
   const oferta = await obtenerOferta(params.uuid);
   
   if (!oferta) {
