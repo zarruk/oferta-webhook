@@ -2,15 +2,9 @@ import { NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 
-interface RouteContext {
-  params: {
-    numeroPedido: string;
-  };
-}
-
 export async function DELETE(
   request: Request,
-  { params }: RouteContext
+  { params }: { params: Record<string, string> }
 ) {
   try {
     const filePath = path.join(process.cwd(), 'data', `${params.numeroPedido}.json`);
