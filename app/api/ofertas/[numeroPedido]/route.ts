@@ -2,12 +2,18 @@ import { NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 
+interface RouteContext {
+  params: {
+    numeroPedido: string;
+  };
+}
+
 export async function DELETE(
   request: Request,
-  context: { params: { numeroPedido: string } }
+  { params }: RouteContext
 ) {
   try {
-    const filePath = path.join(process.cwd(), 'data', `${context.params.numeroPedido}.json`);
+    const filePath = path.join(process.cwd(), 'data', `${params.numeroPedido}.json`);
     await fs.unlink(filePath);
     
     return NextResponse.json({ mensaje: 'Oferta eliminada exitosamente' });
