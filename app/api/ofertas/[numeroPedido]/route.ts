@@ -1,19 +1,13 @@
 import { NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: { numeroPedido: string } }
 ) {
   try {
-    const { numeroPedido } = params;
-    const filePath = path.join(process.cwd(), 'data', `${numeroPedido}.json`);
-    await fs.unlink(filePath);
-    
-    return new NextResponse(null, { status: 200 });
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error al eliminar oferta:', error);
-    return new NextResponse(null, { status: 500 });
+    console.error('Error:', error);
+    return NextResponse.json({ success: false }, { status: 500 });
   }
 } 
