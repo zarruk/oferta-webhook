@@ -50,23 +50,36 @@ export default function BotonAceptar({ oferta }: Props) {
         placa_remolque: oferta.placa_remolque || ''
       };
 
-      const response = await fetch('https://summologistics.app.n8n.cloud/webhook/f3ff9ef5-218d-4c67-a1b1-04cc5c1a4674', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST',
-          'Access-Control-Allow-Headers': 'Content-Type'
-        },
-        mode: 'cors',
-        body: JSON.stringify(payload)
-      });
+      console.log('Enviando payload:', payload);
 
-      if (!response.ok) {
+      try {
+        const response = await fetch('https://summologistics.app.n8n.cloud/webhook/f3ff9ef5-218d-4c67-a1b1-04cc5c1a4674', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        console.log('Respuesta status:', response.status);
+        console.log('Respuesta headers:', Object.fromEntries(response.headers.entries()));
+        
         const text = await response.text();
-        console.error('Error response:', text);
-        throw new Error('Error al enviar la oferta: ' + text);
+        console.log('Respuesta body:', text);
+
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status} - ${text}`);
+        }
+
+      } catch (fetchError) {
+        console.error('Error detallado del fetch:', {
+          name: fetchError.name,
+          message: fetchError.message,
+          cause: fetchError.cause,
+          stack: fetchError.stack
+        });
+        throw fetchError;
       }
 
       const updateResponse = await fetch('/api/ofertas/actualizar', {
