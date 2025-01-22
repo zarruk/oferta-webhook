@@ -37,7 +37,6 @@ export async function POST(req: Request) {
     const rows = await sheet.getRows();
     
     console.log('Filas totales:', rows.length);
-    console.log('UUIDs disponibles:', rows.map(row => row.get('UUID')));
     
     const ofertaRow = rows.find(row => row.get('UUID') === data.uuid);
 
@@ -54,14 +53,41 @@ export async function POST(req: Request) {
       });
     }
 
-    console.log('✍️ Actualizando estado de la oferta...');
-    ofertaRow.set('Estado', 'Aceptado');
-    await ofertaRow.save();
+    // Obtener la cédula del transportista
+    const cedulaTransportista = ofertaRow.get('Cédula');
+    console.log('🔍 Cédula del transportista:', cedulaTransportista);
 
-    console.log('✅ Oferta actualizada exitosamente');
+    // Actualizar todas las ofertas del mismo transportista
+    console.log('📝 Actualizando ofertas del transportista...');
+    for (const row of rows) {
+      // Solo procesar ofertas del mismo transportista que estén en estado "Recibido"
+      if (row.get('Cédula') === cedulaTransportista && row.get('Estado') === 'Recibido') {
+        if (row.get('UUID') === data.uuid) {
+          console.log('✅ Aceptando oferta:', row.get('UUID'));
+          row.set('Estado', 'Aceptado');
+        } else {
+          console.log('❌ Cancelando oferta:', row.get('UUID'));
+          row.set('Estado', 'Cancelado');
+        }
+        await row.save();
+        // Esperar un momento entre actualizaciones para evitar rate limits
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+
+    // Verificar que los cambios se guardaron
+    const rowsActualizadas = await sheet.getRows();
+    console.log('🔍 Verificando estados actualizados:');
+    rowsActualizadas
+      .filter(row => row.get('Cédula') === cedulaTransportista)
+      .forEach(row => {
+        console.log(`- Oferta ${row.get('UUID')}: ${row.get('Estado')}`);
+      });
+
+    console.log('✅ Todas las ofertas actualizadas exitosamente');
     return new Response(JSON.stringify({
       success: true,
-      message: 'Estado actualizado correctamente'
+      message: 'Estados actualizados correctamente'
     }), {
       status: 200,
       headers: {

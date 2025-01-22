@@ -58,39 +58,46 @@ export default function BotonAceptar({ oferta }: Props) {
         throw new Error(updateData.message || 'Error al actualizar estado');
       }
 
-      // Luego enviar a webhook
-      console.log('🌐 Enviando a webhook...');
-      const payload = {
-        numeroPedido: oferta.numeroPedido,
-        ciudadOrigen: oferta.ciudadOrigen,
-        ciudadDestino: oferta.ciudadDestino,
-        tipoVehiculo: oferta.tipoVehiculo,
-        empresa: oferta.empresa,
-        tipoCarga: oferta.tipoCarga,
-        valorRemesa: oferta.valorRemesa,
-        nombre: oferta.nombre,
-        apellido: oferta.apellido,
-        cedula: oferta.cedula,
-        telefono: oferta.telefono,
-        fecha: oferta.fecha,
-        placa_vehiculo: oferta.placa_vehiculo || '',
-        capacidad_vehiculo: oferta.capacidad_vehiculo || '',
-        placa_remolque: oferta.placa_remolque || ''
-      };
+      try {
+        // Luego enviar a webhook
+        console.log('🌐 Enviando a webhook...');
+        const payload = {
+          numeroPedido: oferta.numeroPedido,
+          ciudadOrigen: oferta.ciudadOrigen,
+          ciudadDestino: oferta.ciudadDestino,
+          tipoVehiculo: oferta.tipoVehiculo,
+          empresa: oferta.empresa,
+          tipoCarga: oferta.tipoCarga,
+          valorRemesa: oferta.valorRemesa,
+          nombre: oferta.nombre,
+          apellido: oferta.apellido,
+          cedula: oferta.cedula,
+          telefono: oferta.telefono,
+          fecha: oferta.fecha,
+          placa_vehiculo: oferta.placa_vehiculo || '',
+          capacidad_vehiculo: oferta.capacidad_vehiculo || '',
+          placa_remolque: oferta.placa_remolque || ''
+        };
 
-      const webhookResponse = await axios.post(
-        'https://summologistics.app.n8n.cloud/webhook/f3ff9ef5-218d-4c67-a1b1-04cc5c1a4674',
-        payload,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          timeout: 10000
-        }
-      );
+        const webhookResponse = await axios.post(
+          'https://summologistics.app.n8n.cloud/webhook/f3ff9ef5-218d-4c67-a1b1-04cc5c1a4674',
+          payload,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            timeout: 10000
+          }
+        );
 
-      console.log('✅ Respuesta de webhook:', webhookResponse.data);
+        console.log('✅ Respuesta de webhook:', webhookResponse.data);
+      } catch (webhookError) {
+        console.error('⚠️ Error al enviar webhook (no crítico):', webhookError);
+        // Continuamos aunque falle el webhook
+      }
+
+      // Mostrar éxito incluso si falla el webhook
       setShowSuccess(true);
 
     } catch (error) {
