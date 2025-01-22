@@ -72,14 +72,14 @@ export default function BotonAceptar({ oferta }: Props) {
           throw new Error(`Error HTTP: ${response.status} - ${text}`);
         }
 
-      } catch (fetchError) {
+      } catch (error) {
         console.error('Error detallado del fetch:', {
-          name: fetchError.name,
-          message: fetchError.message,
-          cause: fetchError.cause,
-          stack: fetchError.stack
+          name: error instanceof Error ? error.name : 'Unknown',
+          message: error instanceof Error ? error.message : String(error),
+          cause: error instanceof Error ? error.cause : undefined,
+          stack: error instanceof Error ? error.stack : undefined
         });
-        throw fetchError;
+        throw error;
       }
 
       const updateResponse = await fetch('/api/ofertas/actualizar', {
