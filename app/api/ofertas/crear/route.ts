@@ -4,15 +4,17 @@ import { JWT } from 'google-auth-library';
 import { SPREADSHEET_ID, SHEET_ID, CREDENTIALS } from '@/app/lib/googleSheets';
 import { v4 as uuidv4 } from 'uuid';
 
-// Función para esperar un tiempo determinado
-const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+// Función para esperar un tiempo aleatorio entre 1 y 3 segundos
+const waitRandom = () => new Promise(resolve => 
+  setTimeout(resolve, 1000 + Math.random() * 2000)
+);
 
 export async function POST(request: Request) {
   try {
     const oferta = await request.json();
-    const uuid = uuidv4(); // Generamos el UUID aquí
+    const uuid = uuidv4();
     
-    // Intentar hasta 3 veces con retraso exponencial
+    // Intentar hasta 3 veces con espera aleatoria entre intentos
     for (let intento = 0; intento < 3; intento++) {
       try {
         const jwt = new JWT({
@@ -25,6 +27,9 @@ export async function POST(request: Request) {
         await doc.loadInfo();
         const sheet = doc.sheetsById[SHEET_ID];
 
+        // Esperar un tiempo aleatorio antes de verificar duplicados
+        await waitRandom();
+
         // Obtener todas las filas actuales
         const rows = await sheet.getRows();
         
@@ -35,13 +40,16 @@ export async function POST(request: Request) {
         );
         
         if (pedidoExistente) {
-          console.log('Pedido ya existe para esta cédula:', oferta.numeroPedido);
+          console.log('Pedido ya existe:', oferta.numeroPedido);
           return NextResponse.json({ success: true, message: 'Oferta ya registrada' });
         }
 
+        // Esperar otro tiempo aleatorio antes de añadir la fila
+        await waitRandom();
+
         // Añadir la nueva fila
         await sheet.addRow({
-          'UUID': uuid, // Usamos el UUID generado
+          'UUID': uuid,
           'Número de Pedido': oferta.numeroPedido,
           'Ciudad Origen': oferta.ciudadOrigen,
           'Ciudad Destino': oferta.ciudadDestino,
@@ -60,10 +68,8 @@ export async function POST(request: Request) {
           'Placa remolque': oferta.placa_remolque || ''
         });
 
-        // Esperar un momento para asegurar que la escritura se complete
-        await wait(1000);
-
-        // Verificar que la oferta se guardó correctamente
+        // Verificar que la oferta se guardó
+        await waitRandom();
         const rowsActualizadas = await sheet.getRows();
         const ofertaGuardada = rowsActualizadas.find(row => row.get('UUID') === uuid);
         
@@ -71,7 +77,6 @@ export async function POST(request: Request) {
           throw new Error('La oferta no se guardó correctamente');
         }
 
-        // Devolver el UUID generado
         return NextResponse.json({ 
           success: true,
           uuid: uuid
@@ -79,10 +84,8 @@ export async function POST(request: Request) {
 
       } catch (error) {
         console.error(`Error en intento ${intento + 1}:`, error);
-        
         if (intento === 2) throw error;
-        
-        await wait(Math.pow(2, intento) * 500);
+        await waitRandom();
       }
     }
 
