@@ -50,7 +50,7 @@ export default function BotonAceptar({ oferta }: Props) {
         placa_remolque: oferta.placa_remolque || ''
       };
 
-      const response = await fetch('https://workflows.ops.sandbox.cuentamono.com/webhook/f3ff9ef5-218d-4c67-a1b1-04cc5c1a4674', {
+      const response = await fetch('https://summologistics.app.n8n.cloud/webhook/f3ff9ef5-218d-4c67-a1b1-04cc5c1a4674', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
