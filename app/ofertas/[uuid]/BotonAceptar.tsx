@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
+import axios from 'axios';
 
 interface Props {
   oferta: {
@@ -50,35 +51,47 @@ export default function BotonAceptar({ oferta }: Props) {
         placa_remolque: oferta.placa_remolque || ''
       };
 
-      console.log('Enviando payload:', payload);
+      console.log('🚀 Iniciando envío de oferta...');
+      console.log('📦 Payload:', JSON.stringify(payload, null, 2));
 
       try {
-        const response = await fetch('https://summologistics.app.n8n.cloud/webhook/f3ff9ef5-218d-4c67-a1b1-04cc5c1a4674', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-
-        console.log('Respuesta status:', response.status);
-        console.log('Respuesta headers:', Object.fromEntries(response.headers.entries()));
+        console.log('🌐 Enviando a:', 'https://summologistics.app.n8n.cloud/webhook/f3ff9ef5-218d-4c67-a1b1-04cc5c1a4674');
         
-        const text = await response.text();
-        console.log('Respuesta body:', text);
+        const response = await axios.post(
+          'https://summologistics.app.n8n.cloud/webhook/f3ff9ef5-218d-4c67-a1b1-04cc5c1a4674',
+          payload,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            timeout: 10000 // 10 segundos de timeout
+          }
+        );
 
-        if (!response.ok) {
-          throw new Error(`Error HTTP: ${response.status} - ${text}`);
-        }
+        console.log('✅ Respuesta exitosa:', {
+          status: response.status,
+          headers: response.headers,
+          data: response.data
+        });
 
       } catch (error) {
-        console.error('Error detallado del fetch:', {
-          name: error instanceof Error ? error.name : 'Unknown',
-          message: error instanceof Error ? error.message : String(error),
-          cause: error instanceof Error ? error.cause : undefined,
-          stack: error instanceof Error ? error.stack : undefined
-        });
+        if (axios.isAxiosError(error)) {
+          console.error('❌ Error de Axios:', {
+            message: error.message,
+            code: error.code,
+            response: error.response?.data,
+            status: error.response?.status,
+            headers: error.response?.headers,
+            config: {
+              url: error.config?.url,
+              method: error.config?.method,
+              headers: error.config?.headers
+            }
+          });
+        } else {
+          console.error('❌ Error no-Axios:', error);
+        }
         throw error;
       }
 
