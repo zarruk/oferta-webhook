@@ -32,30 +32,6 @@ export default function BotonAceptar({ oferta }: Props) {
   const handleClick = async () => {
     setLoading(true);
     try {
-      console.log('Datos de vehículo a enviar:', {
-        placa: oferta.placa_vehiculo,
-        capacidad: oferta.capacidad_vehiculo,
-        remolque: oferta.placa_remolque
-      });
-
-      console.log('Datos completos de la oferta:', {
-        numeroPedido: oferta.numeroPedido,
-        ciudadOrigen: oferta.ciudadOrigen,
-        ciudadDestino: oferta.ciudadDestino,
-        tipoVehiculo: oferta.tipoVehiculo,
-        empresa: oferta.empresa,
-        tipoCarga: oferta.tipoCarga,
-        valorRemesa: oferta.valorRemesa,
-        nombre: oferta.nombre,
-        apellido: oferta.apellido,
-        cedula: oferta.cedula,
-        telefono: oferta.telefono,
-        fecha: oferta.fecha,
-        placa_vehiculo: oferta.placa_vehiculo,
-        capacidad_vehiculo: oferta.capacidad_vehiculo,
-        placa_remolque: oferta.placa_remolque
-      });
-
       const payload = {
         numeroPedido: oferta.numeroPedido,
         ciudadOrigen: oferta.ciudadOrigen,
@@ -73,8 +49,6 @@ export default function BotonAceptar({ oferta }: Props) {
         capacidad_vehiculo: oferta.capacidad_vehiculo || '',
         placa_remolque: oferta.placa_remolque || ''
       };
-
-      console.log('Payload a enviar:', payload);
 
       const response = await fetch('https://workflows.ops.sandbox.cuentamono.com/webhook/f3ff9ef5-218d-4c67-a1b1-04cc5c1a4674', {
         method: 'POST',
