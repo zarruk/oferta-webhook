@@ -4,19 +4,26 @@ import { JWT } from 'google-auth-library';
 import { SPREADSHEET_ID, SHEET_ID, CREDENTIALS } from '@/app/lib/googleSheets';
 import { v4 as uuidv4 } from 'uuid';
 
-// Función para esperar un tiempo aleatorio entre 1 y 3 segundos
+// Reducir el tiempo de espera máximo para evitar timeout
 const waitRandom = () => new Promise(resolve => 
-  setTimeout(resolve, 1000 + Math.random() * 2000)
+  setTimeout(resolve, 500 + Math.random() * 1000) // Reducido de 1-3s a 0.5-1.5s
 );
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const oferta = await request.json();
+    const oferta = await req.json();
     const uuid = uuidv4();
     
-    // Intentar hasta 3 veces con espera aleatoria entre intentos
+    // Añadir log inicial
+    console.log('📝 Iniciando creación de oferta:', { 
+      numeroPedido: oferta.numeroPedido,
+      cedula: oferta.cedula 
+    });
+    
     for (let intento = 0; intento < 3; intento++) {
       try {
+        console.log(`🔄 Intento ${intento + 1} de 3`);
+        
         const jwt = new JWT({
           email: CREDENTIALS.client_email,
           key: CREDENTIALS.private_key,
@@ -27,25 +34,30 @@ export async function POST(request: Request) {
         await doc.loadInfo();
         const sheet = doc.sheetsById[SHEET_ID];
 
-        // Esperar un tiempo aleatorio antes de verificar duplicados
         await waitRandom();
+        console.log('📊 Verificando duplicados...');
 
-        // Obtener todas las filas actuales
         const rows = await sheet.getRows();
-        
-        // Verificar si el número de pedido ya existe
         const pedidoExistente = rows.find(row => 
           row.get('Número de Pedido') === oferta.numeroPedido &&
           row.get('Cédula') === oferta.cedula
         );
         
         if (pedidoExistente) {
-          console.log('Pedido ya existe:', oferta.numeroPedido);
-          return NextResponse.json({ success: true, message: 'Oferta ya registrada' });
+          console.log('⚠️ Pedido duplicado encontrado:', oferta.numeroPedido);
+          return new Response(JSON.stringify({
+            success: true,
+            message: 'Oferta ya registrada'
+          }), {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
         }
 
-        // Esperar otro tiempo aleatorio antes de añadir la fila
         await waitRandom();
+        console.log('✍️ Guardando nueva oferta...');
 
         // Añadir la nueva fila
         await sheet.addRow({
@@ -68,8 +80,9 @@ export async function POST(request: Request) {
           'Placa remolque': oferta.placa_remolque || ''
         });
 
-        // Verificar que la oferta se guardó
         await waitRandom();
+        console.log('✅ Verificando guardado...');
+        
         const rowsActualizadas = await sheet.getRows();
         const ofertaGuardada = rowsActualizadas.find(row => row.get('UUID') === uuid);
         
@@ -77,13 +90,22 @@ export async function POST(request: Request) {
           throw new Error('La oferta no se guardó correctamente');
         }
 
-        return NextResponse.json({ 
+        console.log('🎉 Oferta creada exitosamente:', uuid);
+        return new Response(JSON.stringify({
           success: true,
-          uuid: uuid
+          message: "Oferta creada exitosamente",
+          data: {
+            uuid: uuid
+          }
+        }), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
 
       } catch (error) {
-        console.error(`Error en intento ${intento + 1}:`, error);
+        console.error(`❌ Error en intento ${intento + 1}:`, error);
         if (intento === 2) throw error;
         await waitRandom();
       }
@@ -92,11 +114,17 @@ export async function POST(request: Request) {
     throw new Error('No se pudo guardar la oferta después de 3 intentos');
 
   } catch (error) {
-    console.error('Error al crear oferta:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Error al crear oferta',
-      details: error instanceof Error ? error.message : 'Error desconocido'
-    }, { status: 500 });
+    console.error('❌ Error fatal al crear oferta:', error);
+    
+    return new Response(JSON.stringify({
+      success: false,
+      message: "Error al crear la oferta",
+      error: error instanceof Error ? error.message : 'Error desconocido'
+    }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
   }
 } 
